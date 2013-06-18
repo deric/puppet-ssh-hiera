@@ -8,8 +8,9 @@ class ssh::params {
     $permit_root_login  = 'no'
     $listen_address     = "0.0.0.0"
 
-    $users              = undef
-    $groups             = undef
+    # will fetch users and groups from all hiera files and merge them into one hash
+    $users              = hiera_hash('ssh_users')
+    $groups             = hiera_hash('ssh_groups')
 
     case $::osfamily {
         'Debian': {

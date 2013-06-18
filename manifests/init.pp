@@ -71,8 +71,7 @@ class ssh (
     $manage_groups      = params_lookup('manage_groups'),
     $users              = params_lookup('users', local, hash),
     $groups             = params_lookup('groups', local, hash),
-    $service_name       = params_lookup('service_name')
-
+    $service_name       = params_lookup('service_name'),
     ) inherits ssh::params {
 
     package { 'openssh-server':
