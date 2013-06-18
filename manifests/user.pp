@@ -32,17 +32,16 @@ define ssh::user(
             if $managehome == true {
                 exec { "rm -rf /home/${username}":  }
             }
-            
-            group { $username:
-                ensure  => absent,
-                gid     => $gid,
-            }
 
             user { $username:
                 ensure      => absent,
                 uid         => $uid,
                 gid         => $gid,
                 groups      => $groups,
+            } ~>            
+            group { $username:
+                ensure  => absent,
+                gid     => $gid,
             }
         }
 
