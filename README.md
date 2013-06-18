@@ -7,7 +7,15 @@ layout (https://github.com/credativ/puppet-module-template)
 
 if you are using puppet-librarian, simply add:
 
-    mod 'ssh', :git => 'git://github.com/credativ/puppet-ssh-hiera.git'
+    mod 'ssh', :git => 'git://github.com/deric/puppet-ssh-hiera.git'
+    
+So including it via the following line of code or in a ENC declaration
+(apart from proper configuration in hiera or top-scope variables)
+is usually enough:
+
+      class { 'ssh': }
+
+This module does not create a configuration file itself, but it is able to manage a few common settings.    
 
 ## Usage
 
@@ -30,13 +38,16 @@ in the hiera backend.
           comment: "john@pc"
           key: "AAAAB3NzaC1yc2EAAAADAQABAAABAQDIRsDur48bb8kTvrtg9uSzu722964xQ+4Pnu...
 
-So including it via the following line of code or in a ENC declaration
-(apart from proper configuration in hiera or top-scope variables)
-is usually enough:
+### Removing user account
 
-      class { 'ssh': }
+Adding `ensure: "absent"` will remove home folder (if it's managed by ssh-hiera) and also will ensure that user with given `uid` and `gid` is not present at system.
 
-This module does not create a configuration file itself, but it is able to manage a few common settings.
+    ssh_users:
+      johndoe:
+        ensure: "absent"
+        uid: 1002
+        gid: 1002
+
 
 Suppose your `hiera.yaml` looks like this:
 
