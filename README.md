@@ -47,6 +47,7 @@ Adding `ensure: "absent"` will remove home folder (if it's managed by ssh-hiera)
         ensure: "absent"
         uid: 1002
         gid: 1002
+        groups: ["sudo"]
 
 
 Suppose your `hiera.yaml` looks like this:
