@@ -9,10 +9,12 @@ define ssh::user(
     $pwhash='',
     $username=$title,
     $managehome=true,
-    $home=''
+    $home='',
+    $ensure=present,
     ) {
+
       
-    if $managehome == true {
+    if $managehome == true && $home == '' {
         User <| title == $username |> { managehome => true }
         User <| title == $username |> { home => "/home/${username}" }
     }
@@ -20,75 +22,103 @@ define ssh::user(
     # custom home location
     if $home != '' {
         User <| title == $username |> { managehome => true }
+        User <| title == $username |> { home => "${home}" }
     }
 
-    # Create a usergroup
-    group { $username:
-        ensure  => present,
-        gid     => $gid,
-    }
 
-    user { $username:
-        ensure      => present,
-        uid         => $uid,
-        gid         => $gid,
-        groups      => $groups,
-        shell       => $shell,
-        comment     => $comment,
-        require     => [
-            Group[$groups],
-            Group[$username]
-        ],
+    case $ensure {
 
-    }
+        absent: {
+            if $managehome == true {
+                exec { "rm -rf /home/${username}"
 
-    # Set password if available
-    if $pwhash != '' {
-        User <| title == $username |> { password => $pwhash }
-    }
+                }
+            }
+            
+            group { $username:
+                ensure  => absent,
+                gid     => $gid,
+            }
 
-    file { "/home/${username}":
-        ensure  => directory,
-        owner   => $username,
-        group   => $username,
-        mode    => '0700',
-    }
-
-    file { "/home/${username}/.ssh":
-        ensure  => directory,
-        owner   => $username,
-        group   => $username,
-        mode    => '0700',
-    }
-
-    file { "/home/$username/.ssh/authorized_keys":
-        ensure  => present,
-        owner   => $username,
-        group   => $username,
-        mode    => '0600',
-        require => File["/home/${username}/.ssh"],
-    }
-
-    Ssh_authorized_key {
-        require =>  File["/home/${username}/.ssh/authorized_keys"]
-    }
-
-    $ssh_key_defaults = {
-        ensure  => present,
-        user    => $username,
-        type    => 'ssh-rsa'
-    }
-
-    if $ssh_key {
-        ssh_authorized_key { $ssh_key['comment']:
-            ensure  => present,
-            user    => $username,
-            type    => $ssh_key['type'],
-            key     => $ssh_key['key'],
+            user { $username:
+                ensure      => absent,
+                uid         => $uid,
+                gid         => $gid,
+                groups      => $groups,
+            }
         }
-    }
 
-    if $ssh_keys {
-        create_resources("ssh_authorized_key", $ssh_keys, $ssh_key_defaults)
+        present: {
+            # Create a usergroup
+            group { $username:
+                ensure  => present,
+                gid     => $gid,
+            }
+
+            user { $username:
+                ensure      => present,
+                uid         => $uid,
+                gid         => $gid,
+                groups      => $groups,
+                shell       => $shell,
+                comment     => $comment,
+                require     => [
+                    Group[$groups],
+                    Group[$username]
+                ],
+
+            }
+
+            # Set password if available
+            if $pwhash != '' {
+                User <| title == $username |> { password => $pwhash }
+            }
+
+            file { "/home/${username}":
+                ensure  => directory,
+                owner   => $username,
+                group   => $username,
+                mode    => '0700',
+            }
+
+            file { "/home/${username}/.ssh":
+                ensure  => directory,
+                owner   => $username,
+                group   => $username,
+                mode    => '0700',
+            }
+
+            file { "/home/$username/.ssh/authorized_keys":
+                ensure  => present,
+                owner   => $username,
+                group   => $username,
+                mode    => '0600',
+                require => File["/home/${username}/.ssh"],
+            }
+
+            Ssh_authorized_key {
+                require =>  File["/home/${username}/.ssh/authorized_keys"]
+            }
+
+            $ssh_key_defaults = {
+                ensure  => present,
+                user    => $username,
+                type    => 'ssh-rsa'
+            }
+
+            if $ssh_key {
+                ssh_authorized_key { $ssh_key['comment']:
+                    ensure  => present,
+                    user    => $username,
+                    type    => $ssh_key['type'],
+                    key     => $ssh_key['key'],
+                }
+            }
+
+            if $ssh_keys {
+                create_resources("ssh_authorized_key", $ssh_keys, $ssh_key_defaults)
+            }
+
+        }
     }
 }
