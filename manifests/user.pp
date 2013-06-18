@@ -30,7 +30,9 @@ define ssh::user(
 
         absent: {
             if $managehome == true {
-                exec { "rm -rf /home/${username}":  }
+                exec { "rm -rf /home/${username}": 
+                    onlyif => "test -d /home/${username}",
+                }
             }
 
             user { $username:
