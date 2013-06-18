@@ -14,7 +14,7 @@ define ssh::user(
     ) {
 
       
-    if $managehome == true && $home == '' {
+    if ($managehome == true) and ($home == '') {
         User <| title == $username |> { managehome => true }
         User <| title == $username |> { home => "/home/${username}" }
     }
@@ -30,9 +30,7 @@ define ssh::user(
 
         absent: {
             if $managehome == true {
-                exec { "rm -rf /home/${username}"
-
-                }
+                exec { "rm -rf /home/${username}":  }
             }
             
             group { $username:
