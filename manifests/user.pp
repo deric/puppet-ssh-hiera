@@ -13,12 +13,12 @@ define ssh::user(
     $ensure=present,
     ) {
 
-      
+
     if ($managehome == true) and ($home == '') {
         User <| title == $username |> { managehome => true }
         User <| title == $username |> { home => "/home/${username}" }
     }
-    
+
     # custom home location
     if $home != '' {
         User <| title == $username |> { managehome => true }
@@ -30,7 +30,7 @@ define ssh::user(
 
         absent: {
             if $managehome == true {
-                exec { "rm -rf /home/${username}": 
+                exec { "rm -rf /home/${username}":
                     onlyif => "test -d /home/${username}",
                 }
             }
@@ -40,7 +40,7 @@ define ssh::user(
                 uid         => $uid,
                 gid         => $gid,
                 groups      => $groups,
-            } ~>            
+            } ~>
             group { $username:
                 ensure  => absent,
                 gid     => $gid,
@@ -77,6 +77,7 @@ define ssh::user(
                 ensure  => directory,
                 owner   => $username,
                 group   => $username,
+                recurse => true,
                 mode    => '0700',
             }
 
@@ -85,6 +86,7 @@ define ssh::user(
                 owner   => $username,
                 group   => $username,
                 mode    => '0700',
+                require => File["/home/${username}"],
             }
 
             file { "/home/$username/.ssh/authorized_keys":
